@@ -3,6 +3,21 @@ This is an extensible engine for applying an LLM to collecting media. It will en
 I designed this as a very simple prompt for my media-server, so people can ask for things they want, and get pretty simple responses that are aware of the current collection, finding torrents, downloaiding them, etc.
 
 
+## usage
+
+Some example queries:
+
+```
+Get the movie "Legend (1985)"
+Get the movie "Labrynth"
+Get the movie Goonies
+Are there any good copies of album "The Fame" by Lady Gaga?
+Download the Lady Gaga album with "Pokerface" on it
+What is the last episode of "The Daily Show"?
+Download the latest episode of "The Daily Show"
+```
+
+
 ## setup
 
 Configuration is done with code & env-vars. You will need a few stages to do stuff, and each stage is implemented in a few ways, for maximum flexibility. Here is an example entry-point that uses plex for gathering info/collection, qtorrent for downloading torrents and bitmagnet to find them:
@@ -54,9 +69,11 @@ cp .env.example .env
 docker compose up -d
 ```
 
+## ideas
+
 The eventual goal is to make more example-combinations of services, so you can use it however you want, but I built it for my setup (ollama/plex/bitmagnet/qtorrent) first.
 
-With each of these services, I was already using them, and wanted their webui/etc to manage externally, but I'd like to also have a minimal configuration that doesn't need much else other than itself (use TMDB, inline LLM, do it's own DHT-scraping/torrent-downloading/etc.)
+With each of these services, I was already using them, and wanted their webui/etc to manage externally, but I'd like to also have a minimal configuration that doesn't need much else other than itself (use TMDB directly, inline LLM, do it's own DHT-scraping/torrent-downloading/etc.)
 
-This project should be able to replace what sonarr/radarr/etc do, in terms of finding torrents & triggering downloads, and gets rid of a lot of overlap (each needs sources & torrent-client and other things configured.) I'd like to implement many source/download adapters, so this project can be used similarly (use rss feeds and other torrent-search things) but we have a slightly differnt goals.
+This project should be able to replace what sonarr/radarr/etc do, in terms of finding torrents & triggering downloads, and gets rid of a lot of overlap (each needs sources & torrent-client and tons of other things configured.) I'd like to implement many source/download adapters, so this project can be used similarly (use RSS feeds and other torrent-search things.)
 
