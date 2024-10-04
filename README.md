@@ -15,6 +15,8 @@ Are there any good copies of album "The Fame" by Lady Gaga?
 Download the Lady Gaga album with "Pokerface" on it
 What is the last episode of "The Daily Show"?
 Download the latest episode of "The Daily Show"
+Do you have a copy of the latest episode of "The Daily Show"?
+When is the next episode of the daily show?
 ```
 
 
@@ -41,13 +43,24 @@ from torrentai.collection.plex import CollectionManager
 from torrentai import TorrentAI
 
 server=TorrentAI(MediaInfo(), LlmQuery(), TorrentSource(), TorrentManager())
-server.start()
+
+# setup UI
+
+import chainlit as cl
+
+@cl.on_chat_start
+async def on_chat_start():
+  await server.on_chat_start()
+
+@cl.on_message
+async def on_message(message: cl.Message):
+  await server.on_message(message)
 ```
 
 You can run this with:
 
 ```
-python3 example.py
+chainlit run example.py -w --host 0.0.0.0 --port 5100
 ```
 
 At the top of each of these adapter-files, you will see instructions for installing & configuring it.

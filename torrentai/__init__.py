@@ -1,3 +1,6 @@
+isinstance(object, type)
+
+
 class TorrentAI:
   def __init__(self, *args):
     print(args)
