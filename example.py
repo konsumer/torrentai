@@ -16,4 +16,15 @@ from torrentai.collection.plex import CollectionManager
 from torrentai import TorrentAI
 
 server=TorrentAI(MediaInfo(), LlmQuery(), TorrentSource(), TorrentManager())
-server.start()
+
+# setup UI
+
+import chainlit as cl
+
+@cl.on_chat_start
+async def on_chat_start():
+  await server.on_chat_start()
+
+@cl.on_message
+async def on_message(message: cl.Message):
+  await server.on_message(message)
