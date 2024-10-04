@@ -7,8 +7,9 @@ env-vars:
 """
 
 import os
+from torrentai import MediaInfoBase
 
 PLEX_HOST=os.getenv('PLEX_HOST', 'localhost:32400')
 
-class MediaInfo:
+class MediaInfo(MediaInfoBase):
   pass

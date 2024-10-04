@@ -10,7 +10,8 @@ services:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
       - OLLAMA_MODEL=llama3.2 # ollama model to use
-      - PORT=5100 # port to open for web-ui
+      # this is optional, but lets you tune the system
+      - PROMPT_SYSTEM="You are a helpful AI assistant that manages torrents and helps users download media. Use the provided tools when necessary."
       # set some hosts for things defined in this file
       - PLEX_HOST=plex:32400
       - OLLAMA_HOST=ollama:11434
@@ -24,7 +25,7 @@ services:
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
-      - TZ=${TZ} # timezone, defined in .env} 
+      - TZ=${TZ} # timezone, defined in .env}
       - WEBUI_PORT=8080
       - TORRENTING_PORT=6881
     volumes:
@@ -34,7 +35,7 @@ services:
       - 8080:8080
       - 6881:6881
       - 6881:6881/udp
-  
+
   # this manages media, included GPU for transcoding
   plex:
     image: lscr.io/linuxserver/plex:latest
@@ -98,7 +99,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-  
+
   # needed for bitmagnet
   postgres:
     image: postgres:16-alpine

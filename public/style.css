@@ -1,0 +1,7 @@
+.watermark {
+    display: none !important;
+}
+
+#header > img {
+    max-height: 48px !important;
+}
