@@ -2,14 +2,14 @@
 Uses plex API to get info about current collection
 
 env-vars:
-  PLEX_HOST="localhost:32400" # the hostname of the plex server
+  URL_PLEX="http://localhost:32400" # the hostname of the plex server
 
 """
 
 import os
 from torrentai import CollectionManagerBase
 
-PLEX_HOST=os.getenv('PLEX_HOST', 'localhost:32400')
+URL_PLEX=os.getenv('URL_PLEX', 'http://localhost:32400')
 
 class CollectionManager(CollectionManagerBase):
   pass

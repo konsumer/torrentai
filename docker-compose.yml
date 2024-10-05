@@ -16,10 +16,10 @@ services:
       - MAGNETICO_FILE=/root/db/torrents.sqlite
 
       # set some hosts for things defined in this file
-      - PLEX_HOST=plex:32400
-      - OLLAMA_HOST=ollama:11434
-      - BITMAGNET_HOST=bitmagnet:3333
-      - QTORRENT_HOST=torrent:8080
+      - URL_PLEX=http://plex:32400
+      - URL_OLLAMA=http://ollama:11434
+      - URL_BITMAGNET=http://localhost:3333/graphql
+      - URL_QTORRENT=http://torrent:8080
     volumes:
       - ${CONFIG}/magnetico/database:/root/db/
 

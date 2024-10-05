@@ -2,40 +2,70 @@
 bitmagnet API for collecting lists of torrents, and allowing you to search
 
 env-vars:
-  BITMAGNET_HOST="localhost:3333" # the hostname of the bitmagnet server
+  URL_BITMAGNET="http://localhost:3333/graphql" # the hostname of the bitmagnet server
 
 """
 
 import os
 from torrentai import TorrentSourceBase
+from python_graphql_client import GraphqlClient
 
-BITMAGNET_HOST=os.getenv('BITMAGNET_HOST', 'localhost:3333')
+URL_BITMAGNET=os.getenv('URL_BITMAGNET', 'http://localhost:3333/graphql')
+
+
+GET_TORRENTS="""
+query TorrentContentSearch($queryString: String, $contentType: ContentType) {
+  torrentContent {
+    search(query: {queryString: $queryString, limit: 10, cached: true, totalCount: true}, facets: { contentType: { aggregate: true, filter: [$contentType]}}, orderBy: [{field: Seeders, descending: true}]) {
+      items {
+        infoHash
+        seeders
+        leechers
+        content {
+          title
+          externalLinks { url }
+          releaseYear
+          originalLanguage { id }
+          popularity
+          overview
+          runtime
+          collections { name }
+        }
+      }
+    }
+  }
+}
+"""
+
 
 class TorrentSource(TorrentSourceBase):
-  def __init__(self, host=BITMAGNET_HOST):
-    self.host = host
+  def __init__(self, endpoint=URL_BITMAGNET):
+    self.gql = GraphqlClient(endpoint=endpoint)
 
   def get_torrents(self, type:str, title:str, year:str, artist:str):
-    return [
-      {
-        "id": "5173t93EYdxeb",
-        "title": "Movie 1",
-        "seeders": 1,
-        "leechers": 6,
-        "size": "1G"
-      },
-      {
-        "id": "2t6MVuh6sN8Co",
-        "title": "Movie 2",
-        "seeders": 10,
-        "leechers": 30,
-        "size": "1.4G"
-      },
-      {
-        "id": "KZybiZPBeBogc",
-        "title": "Movie 3",
-        "seeders": 30,
-        "leechers": 60,
-        "size": "1.5G"
-      },
-    ]
+    variables = {
+      "queryString": title,
+      "contentType": type
+    }
+
+    if type == "album":
+      variables['contentType']="music"
+
+    if type == "tv":
+      variables['contentType']="tv_show"
+
+    r = self.gql.execute(query=GET_TORRENTS, variables=variables)
+    out = []
+    for result in r['data']['torrentContent']['search']['items']:
+      out.append({
+        "id": result['infoHash'],
+        "seeders": result['seeders'],
+        "leechers": result['leechers'],
+        "title": result['content']['title'],
+        "year": result['content']['releaseYear'],
+        "runtime": result['content']['runtime'],
+        "overview": result['content']['overview'],
+        "links": [i['url'] for i in result['content']['externalLinks']],
+        "originalLanguage": result['originalLanguage']['id']
+      })
+    return out
