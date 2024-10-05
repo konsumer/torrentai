@@ -169,7 +169,7 @@ class TorrentAI:
     if "year" not in args:
       args['year']=None
     if "artist" not in args:
-        args['artist']=None
+      args['artist']=None
     for adapter in self.torrentSource:
       newresults = adapter.get_torrents(type, args['title'], args['year'], args['artist'])
       results=[*results, *newresults]
