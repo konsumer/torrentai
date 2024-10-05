@@ -6,26 +6,42 @@ services:
     ports:
       - 5100:5100
     environment:
-      - TZ=${TZ} # timezone, defined in .env
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PGID} # default group id, defined in .env
-      - OLLAMA_MODEL=llama3.2 # ollama model to use
+      - TZ # timezone, defined in .env
+      - PUID # default user id, defined in .env
+      - PGID # default group id, defined in .env
+      
       # this is optional, but lets you tune the system
+      - OLLAMA_MODEL=llama3.2 # ollama model to use
       - PROMPT_SYSTEM="You are a helpful AI assistant that manages torrents and helps users download media. Use the provided tools when necessary."
+      - MAGNETICO_FILE=/root/db/torrents.sqlite
+
       # set some hosts for things defined in this file
       - PLEX_HOST=plex:32400
       - OLLAMA_HOST=ollama:11434
       - BITMAGNET_HOST=bitmagnet:3333
       - QTORRENT_HOST=torrent:8080
+    volumes:
+      - ${CONFIG}/magnetico/database:/root/db/
+
+  # this is a self-hosted DHT tracker
+  magneticod:
+    image: boramalper/magneticod:latest
+    volumes:
+      - ${CONFIG}/magnetico/database:/root/.local/share/magneticod
+      - ${CONFIG}/magnetico/config:/root/.config/magneticod
+    network_mode: "host"
+    command:
+      - "--indexer-addr=0.0.0.0:1212"
+      - "--database=/root/.local/share/magneticod/torrents.sqlite"
 
   # this downloads torrents
   torrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     restart: unless-stopped
     environment:
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PGID} # default group id, defined in .env
-      - TZ=${TZ} # timezone, defined in .env}
+      - TZ # timezone, defined in .env
+      - PUID # default user id, defined in .env
+      - PGID # default group id, defined in .env
       - WEBUI_PORT=8080
       - TORRENTING_PORT=6881
     volumes:
@@ -44,10 +60,10 @@ services:
     privileged: true
     network_mode: host
     environment:
-      - TZ=${TZ} # timezone, defined in .env
-      - PLEX_CLAIM=${PLEX_CLAIM} # your user-code, in .env
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PGID} # default group id, defined in .env
+      - TZ # timezone, defined in .env
+      - PUID # default user id, defined in .env
+      - PGID # default group id, defined in .env
+      - PLEX_CLAIM # your user-code, in .env
     volumes:
       - ${CONFIG}/plex/db:/config # plex database
       - ${ROOT}/transcode:/transcode # temp transcoded files
@@ -78,42 +94,42 @@ services:
               capabilities: [gpu]
 
   # personal torrent search-engine
-  bitmagnet:
-    image: ghcr.io/bitmagnet-io/bitmagnet:latest
-    container_name: bitmagnet
-    ports:
-      - "3333:3333"
-      - "3334:3334/tcp"
-      - "3334:3334/udp"
-    restart: unless-stopped
-    environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PASSWORD=postgres
-      - CLASSIFIER_DELETE_XXX=true # this makes it so it doesn't index files idententified as XXX
-    command:
-      - worker
-      - run
-      - --keys=http_server
-      - --keys=queue_server
-      - --keys=dht_crawler
-    depends_on:
-      postgres:
-        condition: service_healthy
+  # bitmagnet:
+  #   image: ghcr.io/bitmagnet-io/bitmagnet:latest
+  #   container_name: bitmagnet
+  #   ports:
+  #     - "3333:3333"
+  #     - "3334:3334/tcp"
+  #     - "3334:3334/udp"
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_HOST=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - CLASSIFIER_DELETE_XXX=true # this makes it so it doesn't index files idententified as XXX
+  #   command:
+  #     - worker
+  #     - run
+  #     - --keys=http_server
+  #     - --keys=queue_server
+  #     - --keys=dht_crawler
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
 
-  # needed for bitmagnet
-  postgres:
-    image: postgres:16-alpine
-    volumes:
-      - ${CONFIG}/postgres:/var/lib/postgresql/data
-    restart: unless-stopped
-    environment:
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=bitmagnet
-      - PGUSER=postgres
-    shm_size: 1g
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - pg_isready
-      start_period: 20s
-      interval: 10s
+  # # needed for bitmagnet
+  # postgres:
+  #   image: postgres:16-alpine
+  #   volumes:
+  #     - ${CONFIG}/postgres:/var/lib/postgresql/data
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=bitmagnet
+  #     - PGUSER=postgres
+  #   shm_size: 1g
+  #   healthcheck:
+  #     test:
+  #       - CMD-SHELL
+  #       - pg_isready
+  #     start_period: 20s
+  #     interval: 10s
