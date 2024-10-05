@@ -7,6 +7,9 @@ from torrentai.llm_query.ollama import LlmQuery
 # bitmagnet API for collecting lists of torrents, and allowing you to search
 from torrentai.torrent_source.bitmagnet import TorrentSource
 
+# magnetico sqlite interface for collecting lists of torrents, and allowing you to search
+# from torrentai.torrent_source.magnetico import TorrentSource
+
 # qtorrent API to download torrents
 from torrentai.torrent_manager.qtorrent import TorrentManager
 
