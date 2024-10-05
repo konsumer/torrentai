@@ -137,7 +137,10 @@ class TorrentAI:
   def output_results(self, type, args):
     results = []
     for adapter in self.torrentSource:
-      newresults = adapter.get_torrents(type, args['title'], args['year'], None)
+      if "year" in args:
+        newresults = adapter.get_torrents(type, args['title'], args['year'])
+      else:
+        newresults = adapter.get_torrents(type, args['title'])
       results=[*results, *newresults]
     out=f"Here is a list of available torrents for {args['title']}:\n\n| id | title | ratio | size |\n|---|---|---|---|"
     for r in results:

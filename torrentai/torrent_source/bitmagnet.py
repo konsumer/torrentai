@@ -25,7 +25,6 @@ query TorrentContentSearch($queryString: String, $contentType: ContentType) {
           title
           externalLinks { url }
           releaseYear
-          originalLanguage { id }
           popularity
           overview
           runtime
@@ -55,6 +54,7 @@ class TorrentSource(TorrentSourceBase):
       variables['contentType']="tv_show"
 
     r = self.gql.execute(query=GET_TORRENTS, variables=variables)
+    print(r)
     out = []
     for result in r['data']['torrentContent']['search']['items']:
       out.append({
@@ -65,7 +65,6 @@ class TorrentSource(TorrentSourceBase):
         "year": result['content']['releaseYear'],
         "runtime": result['content']['runtime'],
         "overview": result['content']['overview'],
-        "links": [i['url'] for i in result['content']['externalLinks']],
-        "originalLanguage": result['originalLanguage']['id']
+        "links": [i['url'] for i in result['content']['externalLinks']]
       })
     return out
