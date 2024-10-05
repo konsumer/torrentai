@@ -27,3 +27,4 @@ class TorrentManager(TorrentManagerBase):
   def download_torrent(self, id, title):
     if self.qbt.torrents_add(urls=f"magnet:?xt=urn:btih:{id}&dn={quote(title)}") != "Ok.":
       raise Exception("Failed to add torrent.")
+    print(f"{title} added.")
