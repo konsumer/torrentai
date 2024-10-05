@@ -12,24 +12,25 @@ from python_graphql_client import GraphqlClient
 
 URL_BITMAGNET=os.getenv('URL_BITMAGNET', 'http://localhost:3333/graphql')
 
-
 GET_TORRENTS="""
 query TorrentContentSearch($queryString: String, $contentType: ContentType) {
   torrentContent {
-    search(query: {queryString: $queryString, limit: 10, cached: true, totalCount: true}, facets: { contentType: { aggregate: true, filter: [$contentType]}}, orderBy: [{field: Seeders, descending: true}]) {
+    search(query: {queryString: $queryString, limit: 30, cached: true, totalCount: true}, facets: { contentType: { aggregate: true, filter: [$contentType]}}, orderBy: [{field: Seeders, descending: true}]) {
       items {
         infoHash
+        contentType
         seeders
         leechers
+        videoResolution
+        videoCodec
+        title
         content {
-          title
-          externalLinks { url }
           releaseYear
           popularity
           overview
           runtime
-          collections { name }
         }
+        torrent { size }
       }
     }
   }
@@ -53,18 +54,30 @@ class TorrentSource(TorrentSourceBase):
     if type == "tv":
       variables['contentType']="tv_show"
 
+    if type == "album" and artist is not None:
+      variables['queryString']=f"{artist} - {title}"
+
+    if year is not None:
+       variables['queryString']=f"{variables['queryString']} ({year})"
+
     r = self.gql.execute(query=GET_TORRENTS, variables=variables)
     print(r)
     out = []
     for result in r['data']['torrentContent']['search']['items']:
-      out.append({
+      o = {
         "id": result['infoHash'],
         "seeders": result['seeders'],
         "leechers": result['leechers'],
-        "title": result['content']['title'],
-        "year": result['content']['releaseYear'],
-        "runtime": result['content']['runtime'],
-        "overview": result['content']['overview'],
-        "links": [i['url'] for i in result['content']['externalLinks']]
-      })
+        "title": result['title'],
+        "year": year,
+        "runtime": 0,
+        "overview": "",
+        "size": result['torrent']['size']
+      }
+      # content is mostly for movies, and often not set
+      if result['content'] is not None:
+        o['year'] = result['content']['releaseYear']
+        o['runtime'] = result['content']['runtime'],
+        o['overview'] = result['content']['overview'],
+      out.append(o)
     return out

@@ -70,6 +70,36 @@ tools = [
   }
 ]
 
+def formatSize(sizeInBytes, decimalNum=1, isUnitWithI=False, sizeUnitSeperator=""):
+  """format size to human readable string"""
+  # https://en.wikipedia.org/wiki/Binary_prefix#Specific_units_of_IEC_60027-2_A.2_and_ISO.2FIEC_80000
+  # K=kilo, M=mega, G=giga, T=tera, P=peta, E=exa, Z=zetta, Y=yotta
+  sizeUnitList = ['','K','M','G','T','P','E','Z']
+  largestUnit = 'Y'
+
+  if isUnitWithI:
+    sizeUnitListWithI = []
+    for curIdx, eachUnit in enumerate(sizeUnitList):
+      unitWithI = eachUnit
+      if curIdx >= 1:
+        unitWithI += 'i'
+      sizeUnitListWithI.append(unitWithI)
+
+    # sizeUnitListWithI = ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']
+    sizeUnitList = sizeUnitListWithI
+
+    largestUnit += 'i'
+
+  suffix = "B"
+  decimalFormat = "." + str(decimalNum) + "f" # ".1f"
+  finalFormat = "%" + decimalFormat + sizeUnitSeperator + "%s%s" # "%.1f%s%s"
+  sizeNum = sizeInBytes
+  for sizeUnit in sizeUnitList:
+      if abs(sizeNum) < 1024.0:
+        return finalFormat % (sizeNum, sizeUnit, suffix)
+      sizeNum /= 1024.0
+  return finalFormat % (sizeNum, largestUnit, suffix)
+
 class TorrentAI:
   def __init__(self, *args):
     self.mediaInfo = []
@@ -136,15 +166,21 @@ class TorrentAI:
 
   def output_results(self, type, args):
     results = []
+    if "year" not in args:
+      args['year']=None
+    if "artist" not in args:
+        args['artist']=None
     for adapter in self.torrentSource:
-      if "year" in args:
-        newresults = adapter.get_torrents(type, args['title'], args['year'])
-      else:
-        newresults = adapter.get_torrents(type, args['title'])
+      newresults = adapter.get_torrents(type, args['title'], args['year'], args['artist'])
       results=[*results, *newresults]
-    out=f"Here is a list of available torrents for {args['title']}:\n\n| id | title | ratio | size |\n|---|---|---|---|"
+    type_string = "TV show"
+    if type == "movie":
+      type_string = "the movie"
+    if type == "album":
+      type_string = "the album"
+    out=f"Here is a list of available torrents for {type_string} {args['title']}:\n\n| id | title | ratio | size |\n|---|---|---|---|"
     for r in results:
-      out = f"{out}\n| {r['id']} | {r['title']} | {r['seeders']}/{r['leechers']} | {r['size']}  |"
+      out = f"{out}\n| {r['id']} | {r['title']} | {r['seeders']}/{r['leechers']} | {formatSize(r['size'])}  |"
     out = f"{out}\n\nWhich do you want to download?"
     return out
 
