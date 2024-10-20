@@ -3,6 +3,31 @@ import chainlit as cl
 import logging
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import SystemMessage
+from docstring_parser import parse
+import tools
+
+def tool_parse(tools):
+  """
+  build tools inform from functions & docs
+  """
+  toolsOut = []
+  for fname in dir(tools):
+    if not fname.startswith('__'):
+      f = getattr(tools, fname)
+      d = parse(f.__doc__)
+      newtool = { "parameters": {"type": "object", "properties": {}}, "required": [], "name":fname, "description": d.description.strip() } 
+      for p in d.params:
+        newtool["parameters"]["properties"][p.arg_name] = {
+          "type": p.type_name,
+          "description": p.description
+        }
+        if not  p.is_optional:
+          newtool["required"].append(p.arg_name)
+
+      toolsOut.append(newtool)
+  return toolsOut
+
+tools_description = tool_parse(tools)
 
 PROMPT_SYSTEM=os.getenv('PROMPT_SYSTEM', "You are a helpful AI assistant that manages torrents and helps users download media. Use the provided tools when necessary.")
 
@@ -13,62 +38,7 @@ prompt = ChatPromptTemplate.from_messages([
   ("human", "{input}"),
 ])
 
-tools = [
-  {
-    "name": "download_torrent",
-    "description": "Download a torrent by ID",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "id": {
-           "type": "string",
-           "description": "The ID of a torrent to download",
-        }
-      },
-      "required": ["id"]
-    }
-  },
-  {
-    "name": "get_torrents_for_movie",
-    "description": "Get a list of torrents available for a movie",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "title": {
-           "type": "string",
-           "description": "The title of the movie, without the year",
-        },
-        "year": {
-           "type": "number",
-           "description": "The year the movie was made",
-        }
-      },
-      "required": ["title"]
-    }
-  },
-  {
-    "name": "get_torrents_for_an_album",
-    "description": "Get a list of torrents available for a music album",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "title": {
-           "type": "string",
-           "description": "The title of the album",
-        },
-        "artist": {
-           "type": "string",
-           "description": "The artist that made the album",
-        },
-        "year": {
-           "type": "number",
-           "description": "The year the album was made",
-        }
-      },
-      "required": ["title"]
-    }
-  }
-]
+# generate tools info from tools
 
 def formatSize(sizeInBytes, decimalNum=1, isUnitWithI=False, sizeUnitSeperator=""):
   """format size to human readable string"""
@@ -125,10 +95,6 @@ class TorrentAI:
       raise Exception('You need only 1 TorrentManager provider.')
     if len(self.torrentSource) < 1:
       raise Exception('You need at least 1 TorrentSource provider.')
-    # if len(self.mediaInfo) < 1:
-    #   raise Exception('You need at least 1 MediaInfo provider.')
-    # if len(self.collectionManager) < 1:
-    #   raise Exception('You need at least 1 CollectionManager provider.')
 
   async def on_chat_start(self):
     logging.info("Chat started")
@@ -195,6 +161,25 @@ class TorrentAI:
 
   def get_torrents_for_an_album(self, args):
     return self.output_results("album", args)
+
+  def starters():
+    return [
+      cl.Starter(
+        label="Find a movie and add it to library",
+        message="Get the movie Labrynth",
+        # icon="/public/idea.svg",
+      ),
+      cl.Starter(
+        label="Check on a running download",
+        message="How is Labrynth doing?",
+        # icon="/public/idea.svg",
+      ),
+      cl.Starter(
+        label="Get an album",
+        message="How is Labrynth doing?",
+        # icon="/public/idea.svg",
+      ),
+    ]
 
 
 

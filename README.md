@@ -5,6 +5,7 @@ I designed this as a very simple prompt for my media-server, so people can ask f
 
 ## usage
 
+
 Some example queries:
 
 ```
@@ -14,9 +15,11 @@ Get the movie Goonies
 Are there any good copies of album "The Fame" by Lady Gaga?
 ```
 
+You can see more examples queries in [NOTES](NOTES.md)
+
 ## setup
 
-Configuration is done with code & env-vars. You will need a few stages to do stuff, and each stage is implemented in a few ways, for maximum flexibility. Here is an example entry-point that uses plex for gathering info/collection, qtorrent for downloading torrents and bitmagnet to find them:
+Everything in TorrentAI is configured with code & environment-variables. The idea is that you have a bunch of differnt parts of the system that you can assemble into a working network that does whatever you want.
 
 ```py
 # plex API to get media-info
@@ -50,6 +53,7 @@ import chainlit as cl
 cl.on_chat_start(server.on_chat_start)
 cl.on_message(server.on_message)
 ```
+
 
 You can run this with:
 
