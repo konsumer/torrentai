@@ -1,3 +1,6 @@
+> [!WARNING]  
+> I moved dev to [tvparty](https://github.com/konsumer/tvparty)
+
 This is an extensible engine for applying an LLM to collecting media. It will enable you to make a very simple request engine for plex (more media-managers to come) that is intelligent, will find media for you, and manage downloading it.
 
 I designed this as a very simple prompt for my media-server, so people can ask for things they want, and get pretty simple responses that are aware of the current collection, finding torrents, downloaiding them, etc.
